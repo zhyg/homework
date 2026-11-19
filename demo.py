@@ -348,7 +348,17 @@ def run_real_model_demo(
     provider, model_id, api_base, api_key = resolve_real_model_config()
     print(f"Using real model provider={provider}, model_id={model_id}, api_base={api_base}")
 
-    model = OpenAIServerModel(model_id=model_id, api_key=api_key, api_base=api_base)
+    model_kwargs: dict[str, str] = {}
+    if provider == "deepseek":
+        # DeepSeek thinking models (e.g., deepseek-flash / deepseek-reasoner) reject tool_choice="required"
+        model_kwargs["tool_choice"] = os.environ.get("DEEPSEEK_TOOL_CHOICE", "auto")
+
+    model = OpenAIServerModel(
+        model_id=model_id,
+        api_key=api_key,
+        api_base=api_base,
+        **model_kwargs,
+    )
     tmp_root = Path(tempfile.mkdtemp(prefix="guarded_harness_real_"))
     workspace = tmp_root / "workspace"
     state_dir = tmp_root / "state"
