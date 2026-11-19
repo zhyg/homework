@@ -8,7 +8,11 @@ Modes:
        - records/audit_record.jsonl
        - records/checkpoint_resume_record.json
 
-  2. Real LLM mode (T2, OpenAI-compatible API via smolagents.OpenAIServerModel):
+  2. Real LLM mode (T2, DeepSeek or any OpenAI-compatible API via smolagents.OpenAIModel):
+       # DeepSeek (or put DEEPSEEK_API_KEY in .env)
+       DEEPSEEK_API_KEY=sk-xxx uv run python demo.py --real-model --task-type test_fix [--auto-approve]
+
+       # Generic OpenAI-compatible API
        OPENAI_API_KEY=... OPENAI_BASE_URL=... OPENAI_MODEL=... \\
        uv run python demo.py --real-model --task-type test_fix [--auto-approve]
 """
@@ -303,28 +307,59 @@ print(json.dumps({{"process2_pid": os.getpid(), "result": res.to_dict()}}, ensur
         shutil.rmtree(tmp_root, ignore_errors=True)
 
 
+def resolve_real_model_config() -> tuple[str, str, str | None, str]:
+    """Resolve (provider, model_id, api_base, api_key) from .env / environment variables."""
+    from dotenv import load_dotenv
+
+    load_dotenv()
+
+    deepseek_key = os.environ.get("DEEPSEEK_API_KEY")
+    if deepseek_key:
+        return (
+            "deepseek",
+            os.environ.get("DEEPSEEK_MODEL", "deepseek-chat"),
+            os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"),
+            deepseek_key,
+        )
+
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key:
+        return (
+            "openai",
+            os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
+            os.environ.get("OPENAI_BASE_URL") or None,
+            openai_key,
+        )
+
+    raise SystemExit(
+        "Missing API key. Set DEEPSEEK_API_KEY (or OPENAI_API_KEY) in environment or .env file."
+    )
+
+
 def run_real_model_demo(
     *,
     task_type: TaskType,
     records_dir: Path,
     auto_approve: bool,
 ) -> None:
-    """Run T2 with a real OpenAI-compatible LLM via smolagents.OpenAIServerModel."""
-    from smolagents import OpenAIServerModel
+    """Run T2 with a real DeepSeek / OpenAI-compatible LLM via smolagents.OpenAIServerModel."""
+    from smolagents import LogLevel, OpenAIServerModel
 
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise SystemExit("OPENAI_API_KEY is required for --real-model mode.")
-    model_id = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
-    api_base = os.environ.get("OPENAI_BASE_URL")
+    provider, model_id, api_base, api_key = resolve_real_model_config()
+    print(f"Using real model provider={provider}, model_id={model_id}, api_base={api_base}")
 
     model = OpenAIServerModel(model_id=model_id, api_key=api_key, api_base=api_base)
     tmp_root = Path(tempfile.mkdtemp(prefix="guarded_harness_real_"))
     workspace = tmp_root / "workspace"
     state_dir = tmp_root / "state"
-    _create_sample_repo(workspace)
+    original_files = _create_sample_repo(workspace)
 
-    harness = GuardedHarness(workspace_root=workspace, state_dir=state_dir, model=model)
+    harness = GuardedHarness(
+        workspace_root=workspace,
+        state_dir=state_dir,
+        model=model,
+        verbosity_level=LogLevel.INFO,
+    )
     if task_type == TaskType.CODE_UNDERSTANDING:
         task = "Inspect this repository and write a concise code analysis report to artifacts/analysis.md."
         deliverables = ["artifacts/analysis.md"]
@@ -346,13 +381,33 @@ def run_real_model_demo(
                 harness.reject(res.run_id, pending.approval_id, reviewer="cli_user")
         res = harness.resume(res.run_id)
 
+    patched_source = (workspace / "src" / "discount.py").read_text(encoding="utf-8")
+    diff_text = "".join(
+        difflib.unified_diff(
+            original_files["src/discount.py"].splitlines(keepends=True),
+            patched_source.splitlines(keepends=True),
+            fromfile="a/src/discount.py",
+            tofile="b/src/discount.py",
+        )
+    )
+    audit = AuditLogger(state_dir / "audit.jsonl")
     records_dir.mkdir(parents=True, exist_ok=True)
+    record_payload = {
+        "provider": provider,
+        "model_id": model_id,
+        "api_base": api_base,
+        "result": res.to_dict(),
+        "diff": diff_text,
+        "audit_summary": audit.summarize_run(res.run_id),
+        "full_state": res.state.to_dict(),
+    }
     (records_dir / "real_model_run_record.json").write_text(
-        json.dumps(res.state.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        json.dumps(record_payload, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     shutil.copyfile(state_dir / "audit.jsonl", records_dir / "real_model_audit_record.jsonl")
     print(f"Real-model run finished: status={res.status.value}, stop_reason={res.stop_reason.value}")
+    print(f"Saved records to: {records_dir / 'real_model_run_record.json'}")
     print(f"Workspace preserved at: {workspace}")
 
 

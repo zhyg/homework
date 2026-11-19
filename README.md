@@ -68,9 +68,12 @@ uv run pytest -q
 # 2. 生成完整运行记录、审计记录与跨进程 Checkpoint 恢复记录
 uv run python demo.py
 
-# 3. 使用真实 OpenAI 兼容模型运行（T2）
-OPENAI_API_KEY=your_key OPENAI_MODEL=gpt-4o-mini \
-  uv run python demo.py --real-model --task-type test_fix
+# 3. 使用 DeepSeek 真实模型运行（T2，支持 .env 或环境变量）
+cp .env.example .env  # 填入 DEEPSEEK_API_KEY
+uv run python demo.py --real-model --task-type test_fix
+
+# 或直接通过环境变量传入 DeepSeek Key（默认 https://api.deepseek.com / deepseek-chat）
+DEEPSEEK_API_KEY=sk-your-key uv run python demo.py --real-model --task-type test_fix --auto-approve
 ```
 
 ## 提交记录文件
