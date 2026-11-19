@@ -135,6 +135,25 @@ class StateStore:
         self.save_write_journal(state.run_id, journal)
         return entry
 
+    def abort_write_result(
+        self,
+        state: RunState,
+        tool_call_id: str,
+        *,
+        error_summary: str,
+    ) -> WriteJournalEntry:
+        """Mark an unapplied mutating write as FAILED in WAL and RunState when no disk mutation occurred."""
+        journal = self.load_write_journal(state.run_id)
+        entry = journal.get(tool_call_id) or state.write_journal[tool_call_id]
+        entry.status = WriteCommitStatus.FAILED
+        entry.after_workspace_hash = entry.before_workspace_hash
+        entry.committed_at = utc_now_iso()
+        entry.result_summary = error_summary
+        journal[tool_call_id] = entry
+        state.write_journal[tool_call_id] = entry
+        self.save_write_journal(state.run_id, journal)
+        return entry
+
     # ------------------------------------------------------------------
     # Approval lifecycle management
     # ------------------------------------------------------------------

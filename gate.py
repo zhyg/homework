@@ -645,6 +645,12 @@ class ToolGate:
         try:
             raw_result = policy.handler(**arguments)
         except SandboxViolationError as exc:
+            if policy.is_mutating and tool_call_id in self.run_state.write_journal:
+                self.state_store.abort_write_result(
+                    self.run_state,
+                    tool_call_id,
+                    error_summary=f"SandboxViolationError({exc.rule}): {exc.message}",
+                )
             return self._deny(
                 tool_call_id=tool_call_id,
                 tool_name=tool_name,
@@ -660,28 +666,55 @@ class ToolGate:
         except Exception as exc:
             self.run_state.budget.tool_calls_used += 1
             self.run_state.recent_action_fingerprints.append(fp)
+
+            partial_write = False
+            if policy.is_mutating and tool_call_id in self.run_state.write_journal:
+                _, current_ws_hash, _ = self.sandbox.compute_workspace_snapshot()
+                if current_ws_hash == before_ws_hash:
+                    # Confirmed no disk mutation occurred; mark WAL FAILED so resume won't misclassify as UNKNOWN_RESULT.
+                    self.state_store.abort_write_result(
+                        self.run_state,
+                        tool_call_id,
+                        error_summary=f"{type(exc).__name__}: {exc}",
+                    )
+                else:
+                    # Workspace changed before exception -> treat as UNKNOWN_RESULT and halt for verification.
+                    partial_write = True
+                    entry = self.run_state.write_journal[tool_call_id]
+                    entry.status = WriteCommitStatus.UNKNOWN_RESULT
+                    entry.result_summary = f"Exception after workspace mutation: {type(exc).__name__}: {exc}"
+                    self.run_state.status = RunStatus.WAITING_VERIFICATION
+                    self.run_state.stop_reason = StopReason.UNKNOWN_WRITE_RESULT
+                    self.run_state.last_error = entry.result_summary
+
             self.audit.record(
                 run_id=self.run_state.run_id,
                 stage="EXECUTION",
-                rule="TOOL_EXECUTION_ERROR",
-                decision="FAILED",
+                rule="UNKNOWN_RESULT_GUARD" if partial_write else "TOOL_EXECUTION_ERROR",
+                decision="UNKNOWN_RESULT" if partial_write else "FAILED",
                 actor=actor,
                 tool_call_id=tool_call_id,
                 step_number=effective_step,
                 tool_name=tool_name,
                 arguments=arguments,
-                details={"error_type": type(exc).__name__, "message": str(exc)},
+                details={
+                    "error_type": type(exc).__name__,
+                    "message": str(exc),
+                    "partial_write": partial_write,
+                },
             )
             self.state_store.save_run(self.run_state)
             return GateResponse(
                 ok=False,
-                status="ERROR",
+                status="WAITING_VERIFICATION" if partial_write else "ERROR",
                 tool_call_id=tool_call_id,
                 tool_name=tool_name,
-                rule="TOOL_EXECUTION_ERROR",
-                decision="FAILED",
-                error_code="EXECUTION_ERROR",
+                rule="UNKNOWN_RESULT_GUARD" if partial_write else "TOOL_EXECUTION_ERROR",
+                decision="UNKNOWN_RESULT" if partial_write else "FAILED",
+                error_code="UNKNOWN_RESULT" if partial_write else "EXECUTION_ERROR",
                 message=f"{type(exc).__name__}: {exc}",
+                should_stop=partial_write,
+                stop_reason=StopReason.UNKNOWN_WRITE_RESULT if partial_write else None,
             )
 
         # Test hook for C2: simulate process crash AFTER write succeeds on disk BEFORE result commit

@@ -319,3 +319,66 @@ def test_c4_workspace_change_before_resume_invalidates_evidences_and_approvals(t
     drift_events = h2.audit.query(run_id="run_c4", rule="WORKSPACE_DRIFT_GUARD")
     assert len(drift_events) == 1
     assert drift_events[0]["decision"] == "INVALIDATED"
+
+
+def test_failed_edit_without_disk_mutation_does_not_poison_wal_on_resume(tmp_path: Path) -> None:
+    """A mutating handler error with no disk mutation marks WAL FAILED so subsequent resume succeeds."""
+    workspace = tmp_path / "workspace"
+    state_dir = tmp_path / "state"
+    _create_buggy_calc_repo(workspace)
+
+    # 1. Model proposes an edit_file with a non-matching old_text -> pauses for approval
+    model1 = FakeModel(
+        [
+            ScriptedCall(
+                "edit_file",
+                {
+                    "path": "src/calc.py",
+                    "old_text": "NON_EXISTENT_LINE",
+                    "new_text": "return a + b",
+                },
+                tool_call_id="wal_bad_edit",
+            ),
+        ]
+    )
+    h1 = GuardedHarness(workspace_root=workspace, state_dir=state_dir, model=model1)
+    r1 = h1.run("Fix calc.py", task_type=TaskType.TEST_FIX, run_id="run_wal_fail")
+    assert r1.status == RunStatus.WAITING_APPROVAL
+    bad_appr_id = r1.state.pending_approvals()[0].approval_id
+    h1.approve("run_wal_fail", bad_appr_id, reviewer="alice")
+
+    # 2. Resume executes bad edit -> ValueError (no disk change) -> WAL marked FAILED (not EXECUTING)
+    #    Model then submits corrected edit -> pauses for approval again
+    model2 = FakeModel(
+        [
+            ScriptedCall(
+                "edit_file",
+                {
+                    "path": "src/calc.py",
+                    "old_text": "return a - b  # BUG",
+                    "new_text": "return a + b",
+                },
+                tool_call_id="wal_good_edit",
+            ),
+        ]
+    )
+    h2 = GuardedHarness(workspace_root=workspace, state_dir=state_dir, model=model2)
+    r2 = h2.resume("run_wal_fail")
+    assert r2.status == RunStatus.WAITING_APPROVAL
+    assert r2.state.write_journal["wal_bad_edit"].status == WriteCommitStatus.FAILED
+
+    good_appr_id = r2.state.pending_approvals()[0].approval_id
+    h2.approve("run_wal_fail", good_appr_id, reviewer="alice")
+
+    # 3. Resume again -> must NOT misclassify wal_bad_edit as UNKNOWN_RESULT; run completes!
+    model3 = FakeModel(
+        [
+            ScriptedCall("run_test", {"command": "pytest -q"}, tool_call_id="wal_test"),
+            ScriptedCall("final_answer", {"answer": "Fixed calc.py after retrying edit."}, tool_call_id="wal_done"),
+        ]
+    )
+    h3 = GuardedHarness(workspace_root=workspace, state_dir=state_dir, model=model3)
+    r3 = h3.resume("run_wal_fail")
+    assert r3.completed is True
+    assert r3.state.write_journal["wal_bad_edit"].status == WriteCommitStatus.FAILED
+    assert r3.state.write_journal["wal_good_edit"].status == WriteCommitStatus.COMMITTED

@@ -223,7 +223,7 @@ def register_coding_tools(
     gate.register(
         ToolPolicy(
             name="list_files",
-            handler=lambda directory=".": sandbox.list_files(directory=directory),
+            handler=lambda directory=None: sandbox.list_files(directory=directory or "."),
             arg_schema={
                 "directory": ArgSpec(str, required=False, non_empty=True, allow_none=True),
             },
@@ -259,8 +259,8 @@ def register_coding_tools(
     gate.register(
         ToolPolicy(
             name="search_code",
-            handler=lambda query, directory=".": sandbox.search_code(
-                query=query, directory=directory
+            handler=lambda query, directory=None: sandbox.search_code(
+                query=query, directory=directory or "."
             ),
             arg_schema={
                 "query": ArgSpec(str, required=True, non_empty=True),

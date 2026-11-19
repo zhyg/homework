@@ -32,6 +32,8 @@ from schemas import (
     ApprovalStatus,
     BudgetConfig,
     BudgetState,
+    GateDecision,
+    GateResponse,
     PermissionMode,
     RunState,
     RunStatus,
@@ -258,6 +260,42 @@ class GuardedToolCallingAgent(ToolCallingAgent):
             else f"tc_{uuid.uuid4().hex[:10]}"
         )
         current_step = self.run_state.step_number + 1
+
+        # If an earlier tool call in the same assistant turn already halted the run
+        # (e.g., WAITING_APPROVAL or BUDGET_EXCEEDED), do NOT execute remaining calls in this turn.
+        if self.interrupt_switch:
+            reason = self._pending_stop_reason or self.run_state.stop_reason
+            skipped = GateResponse(
+                ok=False,
+                status=self.run_state.status.value,
+                tool_call_id=tool_call_id,
+                tool_name=tool_name,
+                rule="STEP_INTERRUPTED",
+                decision=GateDecision.DENY.value,
+                error_code="STEP_INTERRUPTED",
+                message=(
+                    f"Skipped tool '{tool_name}' because an earlier call in this step "
+                    f"halted the run ({reason.value})."
+                ),
+                should_stop=True,
+                stop_reason=reason,
+            )
+            self.gate.audit.record(
+                run_id=self.run_state.run_id,
+                stage="GATE",
+                rule="STEP_INTERRUPTED",
+                decision=GateDecision.DENY.value,
+                actor="gate",
+                tool_call_id=tool_call_id,
+                step_number=current_step,
+                tool_name=tool_name,
+                arguments=arguments,
+                details={"stop_reason": reason.value},
+            )
+            if tool_name == "final_answer":
+                raise AgentToolCallError(skipped.to_observation_json(), self.logger)
+            return skipped.to_observation_json()
+
         response = self.gate.call(
             tool_call_id=tool_call_id,
             tool_name=tool_name,

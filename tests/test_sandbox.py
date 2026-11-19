@@ -306,3 +306,19 @@ def test_dangling_symlink_write_escape_rejected(tmp_path: Path) -> None:
 
     assert exc_info.value.rule == "SANDBOX_SYMLINK_ESCAPE"
     assert not outside_target.exists()
+
+
+def test_s3_flag_attached_path_escape_blocked(tmp_path: Path) -> None:
+    """S3 hardening: --flag=/outside or --flag=../../escape arguments are rejected before execution."""
+    gate, _sandbox, _audit, counts = _make_gate_with_sandbox(tmp_path)
+
+    for tcid, cmd in [
+        ("tc_s3_rootdir", "pytest --rootdir=/etc"),
+        ("tc_s3_basetemp", "pytest --basetemp=../../outside_tmp"),
+        ("tc_s3_conf", "pytest -c /etc/passwd"),
+    ]:
+        resp = gate.call(tcid, "run_test", {"command": cmd})
+        assert not resp.ok
+        assert resp.tool_call_id == tcid
+        assert resp.rule == "SANDBOX_PATH_ESCAPE"
+        assert counts["run_test"] == 0

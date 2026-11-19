@@ -480,6 +480,10 @@ class Sandbox:
         # Reject path traversal arguments that attempt to reference files outside workspace
         for arg in argv[len(matched_prefix) :]:
             if arg.startswith("-"):
+                if "=" in arg:
+                    _, value = arg.split("=", 1)
+                    if value and (".." in Path(value).parts or value.startswith("/")):
+                        self.validate_path(value, for_write=False)
                 continue
             if ".." in Path(arg).parts or arg.startswith("/"):
                 # Validate that any explicit path argument stays inside workspace

@@ -266,3 +266,88 @@ def test_duplicate_loop_guard_inside_agent_loop_recovers(tmp_path: Path) -> None
     denials = harness.audit.query(run_id="run_dup_loop", rule="DUPLICATE_CALL_GUARD")
     assert len(denials) == 1
     assert denials[0]["toolCallId"] == "dup_loop_3"
+
+
+def test_multi_tool_call_turn_skips_remaining_calls_after_waiting_approval(tmp_path: Path) -> None:
+    """When one turn emits multiple tool calls and the 1st triggers WAITING_APPROVAL, later calls in the same turn are skipped."""
+    workspace = tmp_path / "workspace"
+    state_dir = tmp_path / "state"
+    workspace.mkdir()
+    (workspace / "info.py").write_text("VERSION = '1.0'\n", encoding="utf-8")
+
+    # Single assistant turn emits BOTH write_file (pauses) and read_file (must be skipped!)
+    model = FakeModel(
+        [
+            [
+                ScriptedCall(
+                    "write_file",
+                    {"path": "artifacts/out.md", "content": "# Out\n"},
+                    tool_call_id="multi_1_write",
+                ),
+                ScriptedCall(
+                    "read_file",
+                    {"path": "info.py"},
+                    tool_call_id="multi_2_read_skipped",
+                ),
+            ]
+        ]
+    )
+
+    harness = GuardedHarness(workspace_root=workspace, state_dir=state_dir, model=model)
+    res = harness.run(
+        "Write out.md",
+        task_type=TaskType.CODE_UNDERSTANDING,
+        run_id="run_multi_skip",
+        required_deliverables=["artifacts/out.md"],
+    )
+
+    assert res.status == RunStatus.WAITING_APPROVAL
+    assert res.stop_reason == StopReason.WAITING_APPROVAL
+    # The second tool call in the same turn must NOT have executed or produced READ evidence
+    assert [ev for ev in res.state.evidences if ev.kind == "READ"] == []
+    assert res.state.budget.tool_calls_used == 0
+    skipped_events = harness.audit.query(
+        run_id="run_multi_skip",
+        tool_call_id="multi_2_read_skipped",
+        rule="STEP_INTERRUPTED",
+    )
+    assert len(skipped_events) == 1
+    assert skipped_events[0]["decision"] == "DENY"
+
+
+def test_null_optional_directory_argument_defaults_to_workspace_root(tmp_path: Path) -> None:
+    """Explicit null for optional directory in list_files/search_code defaults cleanly to workspace root."""
+    workspace = tmp_path / "workspace"
+    state_dir = tmp_path / "state"
+    workspace.mkdir()
+    (workspace / "info.py").write_text("VERSION = '2.0'\n", encoding="utf-8")
+
+    model = FakeModel(
+        [
+            ScriptedCall("list_files", {"directory": None}, tool_call_id="null_dir_list"),
+            ScriptedCall("search_code", {"query": "VERSION", "directory": None}, tool_call_id="null_dir_search"),
+            ScriptedCall(
+                "write_file",
+                {"path": "artifacts/report.md", "content": "# Report\nFound VERSION 2.0.\n"},
+                tool_call_id="null_dir_write",
+            ),
+            ScriptedCall("final_answer", {"answer": "Done."}, tool_call_id="null_dir_done"),
+        ]
+    )
+
+    harness = GuardedHarness(
+        workspace_root=workspace,
+        state_dir=state_dir,
+        model=model,
+        require_write_approval=False,
+    )
+    res = harness.run(
+        "Find VERSION and write artifacts/report.md",
+        task_type=TaskType.CODE_UNDERSTANDING,
+        run_id="run_null_dir",
+        required_deliverables=["artifacts/report.md"],
+    )
+
+    assert res.completed is True
+    read_evidences = [ev for ev in res.state.evidences if ev.kind == "READ"]
+    assert len(read_evidences) == 2

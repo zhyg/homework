@@ -2,7 +2,7 @@
   "run_id": "run_demo_test_fix_001",
   "cross_process_verified": true,
   "process_1": {
-    "pid": 3383059,
+    "pid": 3397972,
     "status_at_pause": "WAITING_APPROVAL",
     "stop_reason": "WAITING_APPROVAL",
     "checkpoint_id": "ckpt_0008",
@@ -23,7 +23,7 @@
     },
     "pending_approvals": [
       {
-        "approval_id": "appr_302902e640",
+        "approval_id": "appr_c56ef43295",
         "run_id": "run_demo_test_fix_001",
         "tool_call_id": "demo_call_5_edit_src",
         "tool_name": "edit_file",
@@ -36,7 +36,7 @@
         "risk_level": "HIGH",
         "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
         "status": "PENDING",
-        "requested_at": "2026-11-19T07:28:42.214413+00:00",
+        "requested_at": "2026-11-19T08:08:58.519379+00:00",
         "decided_at": null,
         "consumed_at": null,
         "reviewer": null,
@@ -46,7 +46,7 @@
     "checkpoint_payload": {
       "checkpoint_id": "ckpt_0008",
       "seq": 8,
-      "created_at": "2026-11-19T07:28:42.271135+00:00",
+      "created_at": "2026-11-19T08:08:58.568977+00:00",
       "run": {
         "run_id": "run_demo_test_fix_001",
         "task": "Fix the failing test in tests/test_discount.py and verify pytest passes.",
@@ -80,12 +80,12 @@
       },
       "evidences": [
         {
-          "evidence_id": "ev_0a7a50c722",
+          "evidence_id": "ev_77ac8f2dea",
           "kind": "TEST_RUN",
           "tool_name": "run_test",
           "tool_call_id": "demo_call_2_test_fail",
           "step_number": 2,
-          "timestamp": "2026-11-19T07:28:42.108459+00:00",
+          "timestamp": "2026-11-19T08:08:58.421038+00:00",
           "target": "pytest -q",
           "passed": false,
           "exit_code": 1,
@@ -96,16 +96,16 @@
           "details": {
             "timed_out": false,
             "cancelled": false,
-            "duration_sec": 0.6675
+            "duration_sec": 0.6627
           }
         },
         {
-          "evidence_id": "ev_b9b394863c",
+          "evidence_id": "ev_86a218fea3",
           "kind": "READ",
           "tool_name": "read_file",
           "tool_call_id": "demo_call_4_read_src",
           "step_number": 4,
-          "timestamp": "2026-11-19T07:28:42.178561+00:00",
+          "timestamp": "2026-11-19T08:08:58.481137+00:00",
           "target": "src/discount.py",
           "passed": null,
           "exit_code": null,
@@ -132,7 +132,7 @@
       },
       "pending_approvals": [
         {
-          "approval_id": "appr_302902e640",
+          "approval_id": "appr_c56ef43295",
           "run_id": "run_demo_test_fix_001",
           "tool_call_id": "demo_call_5_edit_src",
           "tool_name": "edit_file",
@@ -145,7 +145,7 @@
           "risk_level": "HIGH",
           "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
           "status": "PENDING",
-          "requested_at": "2026-11-19T07:28:42.214413+00:00",
+          "requested_at": "2026-11-19T08:08:58.519379+00:00",
           "decided_at": null,
           "consumed_at": null,
           "reviewer": null,
@@ -189,7 +189,7 @@
         "steps": [
           {
             "step_number": 1,
-            "timestamp": "2026-11-19T07:28:41.415394+00:00",
+            "timestamp": "2026-11-19T08:08:57.734489+00:00",
             "model_output": "First set an explicit plan for fixing the failing tests.",
             "tool_calls": [
               {
@@ -225,7 +225,7 @@
           },
           {
             "step_number": 2,
-            "timestamp": "2026-11-19T07:28:42.122829+00:00",
+            "timestamp": "2026-11-19T08:08:58.433560+00:00",
             "model_output": "Run pytest to observe the current failure.",
             "tool_calls": [
               {
@@ -236,7 +236,7 @@
                 }
               }
             ],
-            "observations": "{\"ok\": true, \"status\": \"EXECUTED\", \"tool_call_id\": \"demo_call_2_test_fail\", \"toolCallId\": \"demo_call_2_test_fail\", \"tool_name\": \"run_test\", \"rule\": \"TEST_FAILED\", \"decision\": \"FAILED\", \"output\": {\"command\": [\"pytest\", \"-q\"], \"exit_code\": 1, \"passed\": false, \"stdout\": \"F..                                                                      [100%]\\n=================================== FAILURES ===================================\\n__________________________ test_apply_discount_normal __________________________\\n\\n    def test_apply_discount_normal():\\n>       assert apply_discount(100.0, 20.0) == 80.0\\nE       assert 120.0 == 80.0\\nE        +  where 120.0 = apply_discount(100.0, 20.0)\\n\\ntests/test_discount.py:5: AssertionError\\n=========================== short test summary info ============================\\nFAILED tests/test_discount.py::test_apply_discount_normal - assert 120.0 == 80.0\\n1 failed, 2 passed in 0.04s\\n\", \"stderr\": \"\", \"timed_out\": false, \"cancelled\": false, \"stdout_truncated\": false, \"stderr_truncated\": false, \"duration_sec\": 0.6675, \"pid\": 3383060, \"pgid\": 3383060}}",
+            "observations": "{\"ok\": true, \"status\": \"EXECUTED\", \"tool_call_id\": \"demo_call_2_test_fail\", \"toolCallId\": \"demo_call_2_test_fail\", \"tool_name\": \"run_test\", \"rule\": \"TEST_FAILED\", \"decision\": \"FAILED\", \"output\": {\"command\": [\"pytest\", \"-q\"], \"exit_code\": 1, \"passed\": false, \"stdout\": \"F..                                                                      [100%]\\n=================================== FAILURES ===================================\\n__________________________ test_apply_discount_normal __________________________\\n\\n    def test_apply_discount_normal():\\n>       assert apply_discount(100.0, 20.0) == 80.0\\nE       assert 120.0 == 80.0\\nE        +  where 120.0 = apply_discount(100.0, 20.0)\\n\\ntests/test_discount.py:5: AssertionError\\n=========================== short test summary info ============================\\nFAILED tests/test_discount.py::test_apply_discount_normal - assert 120.0 == 80.0\\n1 failed, 2 passed in 0.05s\\n\", \"stderr\": \"\", \"timed_out\": false, \"cancelled\": false, \"stdout_truncated\": false, \"stderr_truncated\": false, \"duration_sec\": 0.6627, \"pid\": 3397974, \"pgid\": 3397974}}",
             "error": null,
             "is_final_answer": false,
             "input_tokens": 120,
@@ -244,7 +244,7 @@
           },
           {
             "step_number": 3,
-            "timestamp": "2026-11-19T07:28:42.152247+00:00",
+            "timestamp": "2026-11-19T08:08:58.456538+00:00",
             "model_output": "Attempt a forbidden path escape to demonstrate Sandbox interception.",
             "tool_calls": [
               {
@@ -255,7 +255,7 @@
                 }
               }
             ],
-            "observations": "{\"ok\": false, \"status\": \"DENIED\", \"tool_call_id\": \"demo_call_3_blocked_escape\", \"toolCallId\": \"demo_call_3_blocked_escape\", \"tool_name\": \"read_file\", \"rule\": \"SANDBOX_PATH_ESCAPE\", \"decision\": \"DENY\", \"error_code\": \"SANDBOX_PATH_ESCAPE\", \"message\": \"Path 'artifacts/../../.env' escapes workspace root '/tmp/guarded_harness_demo_24sf7x0x/workspace'.\"}",
+            "observations": "{\"ok\": false, \"status\": \"DENIED\", \"tool_call_id\": \"demo_call_3_blocked_escape\", \"toolCallId\": \"demo_call_3_blocked_escape\", \"tool_name\": \"read_file\", \"rule\": \"SANDBOX_PATH_ESCAPE\", \"decision\": \"DENY\", \"error_code\": \"SANDBOX_PATH_ESCAPE\", \"message\": \"Path 'artifacts/../../.env' escapes workspace root '/tmp/guarded_harness_demo_8tzyykrf/workspace'.\"}",
             "error": null,
             "is_final_answer": false,
             "input_tokens": 120,
@@ -263,7 +263,7 @@
           },
           {
             "step_number": 4,
-            "timestamp": "2026-11-19T07:28:42.191372+00:00",
+            "timestamp": "2026-11-19T08:08:58.495893+00:00",
             "model_output": "Read src/discount.py to locate the discount bug.",
             "tool_calls": [
               {
@@ -282,7 +282,7 @@
           },
           {
             "step_number": 5,
-            "timestamp": "2026-11-19T07:28:42.238664+00:00",
+            "timestamp": "2026-11-19T08:08:58.541375+00:00",
             "model_output": "Request approval to fix the sign error in apply_discount().",
             "tool_calls": [
               {
@@ -295,7 +295,7 @@
                 }
               }
             ],
-            "observations": "{\"ok\": false, \"status\": \"WAITING_APPROVAL\", \"tool_call_id\": \"demo_call_5_edit_src\", \"toolCallId\": \"demo_call_5_edit_src\", \"tool_name\": \"edit_file\", \"rule\": \"APPROVAL_REQUIRED\", \"decision\": \"REQUIRE_APPROVAL\", \"error_code\": \"APPROVAL_REQUIRED\", \"message\": \"Tool 'edit_file' requires human approval before execution. Created pending approval 'appr_302902e640'.\", \"approval_id\": \"appr_302902e640\", \"stop_reason\": \"WAITING_APPROVAL\"}",
+            "observations": "{\"ok\": false, \"status\": \"WAITING_APPROVAL\", \"tool_call_id\": \"demo_call_5_edit_src\", \"toolCallId\": \"demo_call_5_edit_src\", \"tool_name\": \"edit_file\", \"rule\": \"APPROVAL_REQUIRED\", \"decision\": \"REQUIRE_APPROVAL\", \"error_code\": \"APPROVAL_REQUIRED\", \"message\": \"Tool 'edit_file' requires human approval before execution. Created pending approval 'appr_c56ef43295'.\", \"approval_id\": \"appr_c56ef43295\", \"stop_reason\": \"WAITING_APPROVAL\"}",
             "error": null,
             "is_final_answer": false,
             "input_tokens": 120,
@@ -304,12 +304,12 @@
         ],
         "evidences": [
           {
-            "evidence_id": "ev_0a7a50c722",
+            "evidence_id": "ev_77ac8f2dea",
             "kind": "TEST_RUN",
             "tool_name": "run_test",
             "tool_call_id": "demo_call_2_test_fail",
             "step_number": 2,
-            "timestamp": "2026-11-19T07:28:42.108459+00:00",
+            "timestamp": "2026-11-19T08:08:58.421038+00:00",
             "target": "pytest -q",
             "passed": false,
             "exit_code": 1,
@@ -320,16 +320,16 @@
             "details": {
               "timed_out": false,
               "cancelled": false,
-              "duration_sec": 0.6675
+              "duration_sec": 0.6627
             }
           },
           {
-            "evidence_id": "ev_b9b394863c",
+            "evidence_id": "ev_86a218fea3",
             "kind": "READ",
             "tool_name": "read_file",
             "tool_call_id": "demo_call_4_read_src",
             "step_number": 4,
-            "timestamp": "2026-11-19T07:28:42.178561+00:00",
+            "timestamp": "2026-11-19T08:08:58.481137+00:00",
             "target": "src/discount.py",
             "passed": null,
             "exit_code": null,
@@ -355,8 +355,8 @@
           "total_tokens": 825
         },
         "approvals": {
-          "appr_302902e640": {
-            "approval_id": "appr_302902e640",
+          "appr_c56ef43295": {
+            "approval_id": "appr_c56ef43295",
             "run_id": "run_demo_test_fix_001",
             "tool_call_id": "demo_call_5_edit_src",
             "tool_name": "edit_file",
@@ -369,7 +369,7 @@
             "risk_level": "HIGH",
             "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
             "status": "PENDING",
-            "requested_at": "2026-11-19T07:28:42.214413+00:00",
+            "requested_at": "2026-11-19T08:08:58.519379+00:00",
             "decided_at": null,
             "consumed_at": null,
             "reviewer": null,
@@ -391,13 +391,13 @@
         "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
         "final_answer": null,
         "last_error": null,
-        "created_at": "2026-11-19T07:28:41.352356+00:00",
-        "updated_at": "2026-11-19T07:28:42.261641+00:00"
+        "created_at": "2026-11-19T08:08:57.661985+00:00",
+        "updated_at": "2026-11-19T08:08:58.559845+00:00"
       }
     }
   },
   "human_approval": {
-    "approval_id": "appr_302902e640",
+    "approval_id": "appr_c56ef43295",
     "run_id": "run_demo_test_fix_001",
     "tool_call_id": "demo_call_5_edit_src",
     "tool_name": "edit_file",
@@ -410,14 +410,14 @@
     "risk_level": "HIGH",
     "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
     "status": "APPROVED",
-    "requested_at": "2026-11-19T07:28:42.214413+00:00",
-    "decided_at": "2026-11-19T07:28:42.285554+00:00",
+    "requested_at": "2026-11-19T08:08:58.519379+00:00",
+    "decided_at": "2026-11-19T08:08:58.581963+00:00",
     "consumed_at": null,
     "reviewer": "alice_reviewer",
     "note": "Verified sign fix in apply_discount(); approved."
   },
   "process_2_resume": {
-    "pid": 3383082,
+    "pid": 3397997,
     "final_status": "COMPLETED",
     "final_stop_reason": "COMPLETED",
     "final_checkpoint_id": "ckpt_0014",
@@ -441,8 +441,8 @@
     "duplicate_write_denial_audit": [
       {
         "seq": 40,
-        "event_id": "evt_1326aec63813",
-        "timestamp": "2026-11-19T07:28:43.140183+00:00",
+        "event_id": "evt_d5e870bc4845",
+        "timestamp": "2026-11-19T08:08:59.442949+00:00",
         "run_id": "run_demo_test_fix_001",
         "step_number": 6,
         "stage": "GATE",
@@ -456,8 +456,8 @@
           "error_code": "DUPLICATE_WRITE_BLOCKED",
           "message": "Mutating tool call 'demo_call_5_edit_src' was already committed; duplicate write execution is rejected."
         },
-        "prev_hash": "96595b5c199912f4a1fdee49b79fbf30721e2a4a730726d86208b96695e48ed3",
-        "event_hash": "b3127b96577b2f3547c17dfe0cd944adde29cf40b29d54c63e5cd53285e42315"
+        "prev_hash": "8bd2e14629bb7293f91a128a12ab6a4cc58162e071220538145ea1bc835fa9c9",
+        "event_hash": "cebfc74a4aaa583b194dee79acca154299bb7b9fb014b90b44a5a6f9e14d6821"
       }
     ]
   },

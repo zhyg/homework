@@ -85,6 +85,7 @@ class ApprovalStatus(str, Enum):
 class WriteCommitStatus(str, Enum):
     EXECUTING = "EXECUTING"
     COMMITTED = "COMMITTED"
+    FAILED = "FAILED"
     UNKNOWN_RESULT = "UNKNOWN_RESULT"
 
 

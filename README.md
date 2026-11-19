@@ -56,7 +56,7 @@ GuardedToolCallingAgent (smolagents.ToolCallingAgent)
 | H1 | 无交付物时拒绝 `final_answer` | `tests/test_completion.py::test_h1_final_answer_rejected_when_no_deliverable_exists`、`test_h1_recovers_after_rejection_once_deliverable_is_written` |
 | H2 | 测试通过后改源码，旧测试失效需重跑 | `tests/test_completion.py::test_h2_modifying_source_after_passing_test_invalidates_test_evidence` |
 | H3 | 达最大轮数或预算以明确 `StopReason` 停止 | `tests/test_harness_loop.py::test_h3_max_steps_stops_with_explicit_stop_reason_without_faking_success`、`test_h3_token_budget_exceeded_stops_with_explicit_stop_reason` |
-| T1 | 完整确定性测试集全绿 | `uv run pytest -q`（28 passed，见 `records/pytest_output.txt`） |
+| T1 | 完整确定性测试集全绿 | `uv run pytest -q`（32 passed，见 `records/pytest_output.txt`） |
 | T2 | 真实模型跑通一类任务 | DeepSeek (`deepseek-flash`) 实际跑通 `test_fix`，见 `records/real_model_run_record.json`、`records/real_model_audit_record.jsonl` |
 
 ## 运行方式
@@ -78,7 +78,7 @@ DEEPSEEK_API_KEY=sk-your-key uv run python demo.py --real-model --task-type test
 
 ## 提交记录文件
 
-- `records/pytest_output.txt`：`pytest -q` 实际运行输出（28 passed）
+- `records/pytest_output.txt`：`pytest -q` 实际运行输出（32 passed）
 - `records/run_record.json`：完整 `test_fix` 任务运行记录（含 Diff、计划、步骤、证据、预算、审批、最终状态与审计摘要）
 - `records/audit_record.jsonl`：append-only 哈希链审计日志（61 条事件，覆盖 Gate/Sandbox/State/Approval/Checkpoint/Execution/Completion）
 - `records/checkpoint_resume_record.json`：真实跨进程（Process 1 -> Process 2）Checkpoint 保存、人工审批、恢复与防重复写入记录
