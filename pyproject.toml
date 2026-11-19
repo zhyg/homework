@@ -1,0 +1,13 @@
+[project]
+name = "guarded-harness"
+version = "0.1.0"
+description = "Recoverable Guarded Coding Harness on top of smolagents ToolCallingAgent"
+requires-python = ">=3.12"
+dependencies = [
+    "pytest>=9.2.0",
+    "smolagents>=1.26.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

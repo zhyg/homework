@@ -1,0 +1,578 @@
+{
+  "run_id": "run_demo_test_fix_001",
+  "cross_process_verified": true,
+  "process_1": {
+    "pid": 3383059,
+    "status_at_pause": "WAITING_APPROVAL",
+    "stop_reason": "WAITING_APPROVAL",
+    "checkpoint_id": "ckpt_0008",
+    "step_at_pause": 5,
+    "budget_at_pause": {
+      "limits": {
+        "max_steps": 12,
+        "max_tool_calls": 25,
+        "max_tokens": 50000,
+        "max_writes": 5
+      },
+      "steps_used": 5,
+      "tool_calls_used": 3,
+      "writes_used": 0,
+      "input_tokens": 600,
+      "output_tokens": 225,
+      "total_tokens": 825
+    },
+    "pending_approvals": [
+      {
+        "approval_id": "appr_302902e640",
+        "run_id": "run_demo_test_fix_001",
+        "tool_call_id": "demo_call_5_edit_src",
+        "tool_name": "edit_file",
+        "arguments": {
+          "path": "src/discount.py",
+          "old_text": "    # BUG: adds discount instead of subtracting it\n    return round(price * (1 + percent / 100.0), 2)",
+          "new_text": "    return round(price * (1 - percent / 100.0), 2)"
+        },
+        "action_fingerprint": "6d2f445e43366dc65bd21b9fce36aabc059f4d7b254cd24d9ec22b7aca8fa703",
+        "risk_level": "HIGH",
+        "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+        "status": "PENDING",
+        "requested_at": "2026-11-19T07:28:42.214413+00:00",
+        "decided_at": null,
+        "consumed_at": null,
+        "reviewer": null,
+        "note": ""
+      }
+    ],
+    "checkpoint_payload": {
+      "checkpoint_id": "ckpt_0008",
+      "seq": 8,
+      "created_at": "2026-11-19T07:28:42.271135+00:00",
+      "run": {
+        "run_id": "run_demo_test_fix_001",
+        "task": "Fix the failing test in tests/test_discount.py and verify pytest passes.",
+        "task_type": "test_fix",
+        "status": "WAITING_APPROVAL",
+        "stop_reason": "WAITING_APPROVAL",
+        "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+        "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683"
+      },
+      "step": 5,
+      "plan": {
+        "goal": "Diagnose and fix failing discount calculation tests",
+        "items": [
+          {
+            "id": "1",
+            "title": "Run pytest to reproduce failure",
+            "status": "in_progress"
+          },
+          {
+            "id": "2",
+            "title": "Inspect src/discount.py",
+            "status": "pending"
+          },
+          {
+            "id": "3",
+            "title": "Patch bug and re-run pytest",
+            "status": "pending"
+          }
+        ],
+        "updated_at_step": 0
+      },
+      "evidences": [
+        {
+          "evidence_id": "ev_0a7a50c722",
+          "kind": "TEST_RUN",
+          "tool_name": "run_test",
+          "tool_call_id": "demo_call_2_test_fail",
+          "step_number": 2,
+          "timestamp": "2026-11-19T07:28:42.108459+00:00",
+          "target": "pytest -q",
+          "passed": false,
+          "exit_code": 1,
+          "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+          "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+          "stale": false,
+          "summary": "command=pytest -q exit_code=1 passed=False",
+          "details": {
+            "timed_out": false,
+            "cancelled": false,
+            "duration_sec": 0.6675
+          }
+        },
+        {
+          "evidence_id": "ev_b9b394863c",
+          "kind": "READ",
+          "tool_name": "read_file",
+          "tool_call_id": "demo_call_4_read_src",
+          "step_number": 4,
+          "timestamp": "2026-11-19T07:28:42.178561+00:00",
+          "target": "src/discount.py",
+          "passed": null,
+          "exit_code": null,
+          "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+          "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+          "stale": false,
+          "summary": "read_file(src/discount.py)",
+          "details": {}
+        }
+      ],
+      "budget": {
+        "limits": {
+          "max_steps": 12,
+          "max_tool_calls": 25,
+          "max_tokens": 50000,
+          "max_writes": 5
+        },
+        "steps_used": 5,
+        "tool_calls_used": 3,
+        "writes_used": 0,
+        "input_tokens": 600,
+        "output_tokens": 225,
+        "total_tokens": 825
+      },
+      "pending_approvals": [
+        {
+          "approval_id": "appr_302902e640",
+          "run_id": "run_demo_test_fix_001",
+          "tool_call_id": "demo_call_5_edit_src",
+          "tool_name": "edit_file",
+          "arguments": {
+            "path": "src/discount.py",
+            "old_text": "    # BUG: adds discount instead of subtracting it\n    return round(price * (1 + percent / 100.0), 2)",
+            "new_text": "    return round(price * (1 - percent / 100.0), 2)"
+          },
+          "action_fingerprint": "6d2f445e43366dc65bd21b9fce36aabc059f4d7b254cd24d9ec22b7aca8fa703",
+          "risk_level": "HIGH",
+          "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+          "status": "PENDING",
+          "requested_at": "2026-11-19T07:28:42.214413+00:00",
+          "decided_at": null,
+          "consumed_at": null,
+          "reviewer": null,
+          "note": ""
+        }
+      ],
+      "state_snapshot": {
+        "run_id": "run_demo_test_fix_001",
+        "task": "Fix the failing test in tests/test_discount.py and verify pytest passes.",
+        "task_type": "test_fix",
+        "status": "WAITING_APPROVAL",
+        "stop_reason": "WAITING_APPROVAL",
+        "step_number": 5,
+        "allowed_permissions": [
+          "read_only",
+          "workspace_write",
+          "test_exec"
+        ],
+        "required_deliverables": [],
+        "plan": {
+          "goal": "Diagnose and fix failing discount calculation tests",
+          "items": [
+            {
+              "id": "1",
+              "title": "Run pytest to reproduce failure",
+              "status": "in_progress"
+            },
+            {
+              "id": "2",
+              "title": "Inspect src/discount.py",
+              "status": "pending"
+            },
+            {
+              "id": "3",
+              "title": "Patch bug and re-run pytest",
+              "status": "pending"
+            }
+          ],
+          "updated_at_step": 0
+        },
+        "steps": [
+          {
+            "step_number": 1,
+            "timestamp": "2026-11-19T07:28:41.415394+00:00",
+            "model_output": "First set an explicit plan for fixing the failing tests.",
+            "tool_calls": [
+              {
+                "id": "demo_call_1_plan",
+                "name": "update_plan",
+                "arguments": {
+                  "goal": "Diagnose and fix failing discount calculation tests",
+                  "items": [
+                    {
+                      "id": "1",
+                      "title": "Run pytest to reproduce failure",
+                      "status": "in_progress"
+                    },
+                    {
+                      "id": "2",
+                      "title": "Inspect src/discount.py",
+                      "status": "pending"
+                    },
+                    {
+                      "id": "3",
+                      "title": "Patch bug and re-run pytest",
+                      "status": "pending"
+                    }
+                  ]
+                }
+              }
+            ],
+            "observations": "{\"ok\": true, \"status\": \"EXECUTED\", \"tool_call_id\": \"demo_call_1_plan\", \"toolCallId\": \"demo_call_1_plan\", \"tool_name\": \"update_plan\", \"rule\": \"TOOL_EXECUTED\", \"decision\": \"SUCCEEDED\", \"output\": {\"goal\": \"Diagnose and fix failing discount calculation tests\", \"items\": [{\"id\": \"1\", \"title\": \"Run pytest to reproduce failure\", \"status\": \"in_progress\"}, {\"id\": \"2\", \"title\": \"Inspect src/discount.py\", \"status\": \"pending\"}, {\"id\": \"3\", \"title\": \"Patch bug and re-run pytest\", \"status\": \"pending\"}], \"updated_at_step\": 0}}",
+            "error": null,
+            "is_final_answer": false,
+            "input_tokens": 120,
+            "output_tokens": 45
+          },
+          {
+            "step_number": 2,
+            "timestamp": "2026-11-19T07:28:42.122829+00:00",
+            "model_output": "Run pytest to observe the current failure.",
+            "tool_calls": [
+              {
+                "id": "demo_call_2_test_fail",
+                "name": "run_test",
+                "arguments": {
+                  "command": "pytest -q"
+                }
+              }
+            ],
+            "observations": "{\"ok\": true, \"status\": \"EXECUTED\", \"tool_call_id\": \"demo_call_2_test_fail\", \"toolCallId\": \"demo_call_2_test_fail\", \"tool_name\": \"run_test\", \"rule\": \"TEST_FAILED\", \"decision\": \"FAILED\", \"output\": {\"command\": [\"pytest\", \"-q\"], \"exit_code\": 1, \"passed\": false, \"stdout\": \"F..                                                                      [100%]\\n=================================== FAILURES ===================================\\n__________________________ test_apply_discount_normal __________________________\\n\\n    def test_apply_discount_normal():\\n>       assert apply_discount(100.0, 20.0) == 80.0\\nE       assert 120.0 == 80.0\\nE        +  where 120.0 = apply_discount(100.0, 20.0)\\n\\ntests/test_discount.py:5: AssertionError\\n=========================== short test summary info ============================\\nFAILED tests/test_discount.py::test_apply_discount_normal - assert 120.0 == 80.0\\n1 failed, 2 passed in 0.04s\\n\", \"stderr\": \"\", \"timed_out\": false, \"cancelled\": false, \"stdout_truncated\": false, \"stderr_truncated\": false, \"duration_sec\": 0.6675, \"pid\": 3383060, \"pgid\": 3383060}}",
+            "error": null,
+            "is_final_answer": false,
+            "input_tokens": 120,
+            "output_tokens": 45
+          },
+          {
+            "step_number": 3,
+            "timestamp": "2026-11-19T07:28:42.152247+00:00",
+            "model_output": "Attempt a forbidden path escape to demonstrate Sandbox interception.",
+            "tool_calls": [
+              {
+                "id": "demo_call_3_blocked_escape",
+                "name": "read_file",
+                "arguments": {
+                  "path": "artifacts/../../.env"
+                }
+              }
+            ],
+            "observations": "{\"ok\": false, \"status\": \"DENIED\", \"tool_call_id\": \"demo_call_3_blocked_escape\", \"toolCallId\": \"demo_call_3_blocked_escape\", \"tool_name\": \"read_file\", \"rule\": \"SANDBOX_PATH_ESCAPE\", \"decision\": \"DENY\", \"error_code\": \"SANDBOX_PATH_ESCAPE\", \"message\": \"Path 'artifacts/../../.env' escapes workspace root '/tmp/guarded_harness_demo_24sf7x0x/workspace'.\"}",
+            "error": null,
+            "is_final_answer": false,
+            "input_tokens": 120,
+            "output_tokens": 45
+          },
+          {
+            "step_number": 4,
+            "timestamp": "2026-11-19T07:28:42.191372+00:00",
+            "model_output": "Read src/discount.py to locate the discount bug.",
+            "tool_calls": [
+              {
+                "id": "demo_call_4_read_src",
+                "name": "read_file",
+                "arguments": {
+                  "path": "src/discount.py"
+                }
+              }
+            ],
+            "observations": "{\"ok\": true, \"status\": \"EXECUTED\", \"tool_call_id\": \"demo_call_4_read_src\", \"toolCallId\": \"demo_call_4_read_src\", \"tool_name\": \"read_file\", \"rule\": \"TOOL_EXECUTED\", \"decision\": \"SUCCEEDED\", \"output\": \"\\\"\\\"\\\"Discount calculator module.\\\"\\\"\\\"\\n\\ndef apply_discount(price: float, percent: float) -> float:\\n    \\\"\\\"\\\"Apply a percentage discount (0-100) to price.\\\"\\\"\\\"\\n    if percent < 0 or percent > 100:\\n        raise ValueError(\\\"percent must be between 0 and 100\\\")\\n    # BUG: adds discount instead of subtracting it\\n    return round(price * (1 + percent / 100.0), 2)\\n\"}",
+            "error": null,
+            "is_final_answer": false,
+            "input_tokens": 120,
+            "output_tokens": 45
+          },
+          {
+            "step_number": 5,
+            "timestamp": "2026-11-19T07:28:42.238664+00:00",
+            "model_output": "Request approval to fix the sign error in apply_discount().",
+            "tool_calls": [
+              {
+                "id": "demo_call_5_edit_src",
+                "name": "edit_file",
+                "arguments": {
+                  "path": "src/discount.py",
+                  "old_text": "    # BUG: adds discount instead of subtracting it\n    return round(price * (1 + percent / 100.0), 2)",
+                  "new_text": "    return round(price * (1 - percent / 100.0), 2)"
+                }
+              }
+            ],
+            "observations": "{\"ok\": false, \"status\": \"WAITING_APPROVAL\", \"tool_call_id\": \"demo_call_5_edit_src\", \"toolCallId\": \"demo_call_5_edit_src\", \"tool_name\": \"edit_file\", \"rule\": \"APPROVAL_REQUIRED\", \"decision\": \"REQUIRE_APPROVAL\", \"error_code\": \"APPROVAL_REQUIRED\", \"message\": \"Tool 'edit_file' requires human approval before execution. Created pending approval 'appr_302902e640'.\", \"approval_id\": \"appr_302902e640\", \"stop_reason\": \"WAITING_APPROVAL\"}",
+            "error": null,
+            "is_final_answer": false,
+            "input_tokens": 120,
+            "output_tokens": 45
+          }
+        ],
+        "evidences": [
+          {
+            "evidence_id": "ev_0a7a50c722",
+            "kind": "TEST_RUN",
+            "tool_name": "run_test",
+            "tool_call_id": "demo_call_2_test_fail",
+            "step_number": 2,
+            "timestamp": "2026-11-19T07:28:42.108459+00:00",
+            "target": "pytest -q",
+            "passed": false,
+            "exit_code": 1,
+            "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+            "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+            "stale": false,
+            "summary": "command=pytest -q exit_code=1 passed=False",
+            "details": {
+              "timed_out": false,
+              "cancelled": false,
+              "duration_sec": 0.6675
+            }
+          },
+          {
+            "evidence_id": "ev_b9b394863c",
+            "kind": "READ",
+            "tool_name": "read_file",
+            "tool_call_id": "demo_call_4_read_src",
+            "step_number": 4,
+            "timestamp": "2026-11-19T07:28:42.178561+00:00",
+            "target": "src/discount.py",
+            "passed": null,
+            "exit_code": null,
+            "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+            "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+            "stale": false,
+            "summary": "read_file(src/discount.py)",
+            "details": {}
+          }
+        ],
+        "budget": {
+          "limits": {
+            "max_steps": 12,
+            "max_tool_calls": 25,
+            "max_tokens": 50000,
+            "max_writes": 5
+          },
+          "steps_used": 5,
+          "tool_calls_used": 3,
+          "writes_used": 0,
+          "input_tokens": 600,
+          "output_tokens": 225,
+          "total_tokens": 825
+        },
+        "approvals": {
+          "appr_302902e640": {
+            "approval_id": "appr_302902e640",
+            "run_id": "run_demo_test_fix_001",
+            "tool_call_id": "demo_call_5_edit_src",
+            "tool_name": "edit_file",
+            "arguments": {
+              "path": "src/discount.py",
+              "old_text": "    # BUG: adds discount instead of subtracting it\n    return round(price * (1 + percent / 100.0), 2)",
+              "new_text": "    return round(price * (1 - percent / 100.0), 2)"
+            },
+            "action_fingerprint": "6d2f445e43366dc65bd21b9fce36aabc059f4d7b254cd24d9ec22b7aca8fa703",
+            "risk_level": "HIGH",
+            "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+            "status": "PENDING",
+            "requested_at": "2026-11-19T07:28:42.214413+00:00",
+            "decided_at": null,
+            "consumed_at": null,
+            "reviewer": null,
+            "note": ""
+          }
+        },
+        "write_journal": {},
+        "recent_action_fingerprints": [
+          "5ef034744cdde7a6b717406eac73a5ef6be24d7db5530688a90f85dc558f7de7",
+          "13d35662c80fab6b3c5721aa925ab0d9b76af60bb265fd64025dc1ade66effcb",
+          "2b16fafd7a8ef9f02d66bb52ff5e63192771ddba459a7d89c6910662b37a5a10"
+        ],
+        "workspace_snapshot": {
+          "src/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "src/discount.py": "16209f7421af9489277e99c2e8c12052d28cc55186e4ccb4d1c31f5e49837922",
+          "tests/test_discount.py": "2cc98b620efde8e490e69940121fae778a24ffd9d87b19776ec4fe73a52c0160"
+        },
+        "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+        "code_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+        "final_answer": null,
+        "last_error": null,
+        "created_at": "2026-11-19T07:28:41.352356+00:00",
+        "updated_at": "2026-11-19T07:28:42.261641+00:00"
+      }
+    }
+  },
+  "human_approval": {
+    "approval_id": "appr_302902e640",
+    "run_id": "run_demo_test_fix_001",
+    "tool_call_id": "demo_call_5_edit_src",
+    "tool_name": "edit_file",
+    "arguments": {
+      "path": "src/discount.py",
+      "old_text": "    # BUG: adds discount instead of subtracting it\n    return round(price * (1 + percent / 100.0), 2)",
+      "new_text": "    return round(price * (1 - percent / 100.0), 2)"
+    },
+    "action_fingerprint": "6d2f445e43366dc65bd21b9fce36aabc059f4d7b254cd24d9ec22b7aca8fa703",
+    "risk_level": "HIGH",
+    "workspace_hash": "c7820f7a153b0ceac6af1257715386b93963d5f6851670a799db97ecffb49683",
+    "status": "APPROVED",
+    "requested_at": "2026-11-19T07:28:42.214413+00:00",
+    "decided_at": "2026-11-19T07:28:42.285554+00:00",
+    "consumed_at": null,
+    "reviewer": "alice_reviewer",
+    "note": "Verified sign fix in apply_discount(); approved."
+  },
+  "process_2_resume": {
+    "pid": 3383082,
+    "final_status": "COMPLETED",
+    "final_stop_reason": "COMPLETED",
+    "final_checkpoint_id": "ckpt_0014",
+    "step_after_resume": 9,
+    "budget_after_resume": {
+      "limits": {
+        "max_steps": 12,
+        "max_tool_calls": 25,
+        "max_tokens": 50000,
+        "max_writes": 5
+      },
+      "steps_used": 9,
+      "tool_calls_used": 7,
+      "writes_used": 1,
+      "input_tokens": 1080,
+      "output_tokens": 405,
+      "total_tokens": 1485
+    },
+    "counters_monotonic_verified": true,
+    "duplicate_write_replay_blocked": true,
+    "duplicate_write_denial_audit": [
+      {
+        "seq": 40,
+        "event_id": "evt_1326aec63813",
+        "timestamp": "2026-11-19T07:28:43.140183+00:00",
+        "run_id": "run_demo_test_fix_001",
+        "step_number": 6,
+        "stage": "GATE",
+        "rule": "APPROVAL_ALREADY_CONSUMED",
+        "decision": "DENY",
+        "actor": "gate",
+        "toolCallId": "demo_call_5_edit_src",
+        "tool_name": "edit_file",
+        "arguments_digest": "322c6247a834b3e1e51b8571143b7f40ea97caf395a83b3a0fa50e982a96c6ac",
+        "details": {
+          "error_code": "DUPLICATE_WRITE_BLOCKED",
+          "message": "Mutating tool call 'demo_call_5_edit_src' was already committed; duplicate write execution is rejected."
+        },
+        "prev_hash": "96595b5c199912f4a1fdee49b79fbf30721e2a4a730726d86208b96695e48ed3",
+        "event_hash": "b3127b96577b2f3547c17dfe0cd944adde29cf40b29d54c63e5cd53285e42315"
+      }
+    ]
+  },
+  "checkpoints_sequence": [
+    {
+      "checkpoint_id": "ckpt_0001",
+      "step": 0,
+      "status": "RUNNING",
+      "steps_used": 0,
+      "writes_used": 0,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0002",
+      "step": 1,
+      "status": "RUNNING",
+      "steps_used": 1,
+      "writes_used": 0,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0003",
+      "step": 2,
+      "status": "RUNNING",
+      "steps_used": 2,
+      "writes_used": 0,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0004",
+      "step": 3,
+      "status": "RUNNING",
+      "steps_used": 3,
+      "writes_used": 0,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0005",
+      "step": 4,
+      "status": "RUNNING",
+      "steps_used": 4,
+      "writes_used": 0,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0006",
+      "step": 4,
+      "status": "WAITING_APPROVAL",
+      "steps_used": 4,
+      "writes_used": 0,
+      "pending_approvals": 1
+    },
+    {
+      "checkpoint_id": "ckpt_0007",
+      "step": 5,
+      "status": "WAITING_APPROVAL",
+      "steps_used": 5,
+      "writes_used": 0,
+      "pending_approvals": 1
+    },
+    {
+      "checkpoint_id": "ckpt_0008",
+      "step": 5,
+      "status": "WAITING_APPROVAL",
+      "steps_used": 5,
+      "writes_used": 0,
+      "pending_approvals": 1
+    },
+    {
+      "checkpoint_id": "ckpt_0009",
+      "step": 5,
+      "status": "RUNNING",
+      "steps_used": 5,
+      "writes_used": 1,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0010",
+      "step": 6,
+      "status": "RUNNING",
+      "steps_used": 6,
+      "writes_used": 1,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0011",
+      "step": 7,
+      "status": "RUNNING",
+      "steps_used": 7,
+      "writes_used": 1,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0012",
+      "step": 8,
+      "status": "RUNNING",
+      "steps_used": 8,
+      "writes_used": 1,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0013",
+      "step": 9,
+      "status": "COMPLETED",
+      "steps_used": 9,
+      "writes_used": 1,
+      "pending_approvals": 0
+    },
+    {
+      "checkpoint_id": "ckpt_0014",
+      "step": 9,
+      "status": "COMPLETED",
+      "steps_used": 9,
+      "writes_used": 1,
+      "pending_approvals": 0
+    }
+  ]
+}
