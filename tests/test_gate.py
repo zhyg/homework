@@ -235,6 +235,55 @@ def test_g4_approved_write_executes_once_and_blocks_replay(tmp_path: Path) -> No
     assert counts["write_file"] == 1
 
 
+def test_g4_tampered_arguments_with_same_tool_call_id_rejected(tmp_path: Path) -> None:
+    """G4: Approval is bound to canonical arguments; tampering content with same tool_call_id is rejected."""
+    gate, state, sandbox, store, audit, counts = _make_gate_env(tmp_path)
+    target_file = sandbox.workspace_root / "out.txt"
+
+    # 1. Request approval for content="v1"
+    pending_resp = gate.call("tc_tamper", "write_file", {"path": "out.txt", "content": "v1"})
+    assert pending_resp.status == "WAITING_APPROVAL"
+    approval_id = pending_resp.approval_id
+    assert approval_id is not None
+
+    # 2. Human approves content="v1"
+    store.approve(state.run_id, approval_id, reviewer="alice", note="approved v1 only")
+    state.approvals = store.load_run(state.run_id).approvals
+
+    # 3. Attempt execution with SAME tool_call_id but TAMPERED content -> MUST BE DENIED!
+    tampered_resp = gate.call("tc_tamper", "write_file", {"path": "out.txt", "content": "TAMPERED"})
+    assert not tampered_resp.ok
+    assert tampered_resp.status == "DENIED"
+    assert tampered_resp.tool_call_id == "tc_tamper"
+    assert tampered_resp.rule == "APPROVAL_ARGUMENT_MISMATCH"
+    assert counts["write_file"] == 0
+    assert not target_file.exists()
+    assert state.approvals[approval_id].status == ApprovalStatus.APPROVED
+
+    # Audit log captures argument-mismatch denial with original toolCallId
+    denials = audit.query(
+        run_id=state.run_id,
+        tool_call_id="tc_tamper",
+        rule="APPROVAL_ARGUMENT_MISMATCH",
+        decision="DENY",
+    )
+    assert len(denials) == 1
+
+    # 4. Calling with the actual approved canonical arguments (even via "./out.txt") executes once
+    ok_resp = gate.call("tc_tamper", "write_file", {"path": "./out.txt", "content": "v1"})
+    assert ok_resp.ok
+    assert ok_resp.status == "EXECUTED"
+    assert counts["write_file"] == 1
+    assert target_file.read_text(encoding="utf-8") == "v1"
+    assert state.approvals[approval_id].status == ApprovalStatus.CONSUMED
+
+    # 5. Replaying afterward is still rejected
+    replay_resp = gate.call("tc_tamper", "write_file", {"path": "out.txt", "content": "v1"})
+    assert not replay_resp.ok
+    assert replay_resp.rule == "APPROVAL_ALREADY_CONSUMED"
+    assert counts["write_file"] == 1
+
+
 def test_permission_and_budget_checks(tmp_path: Path) -> None:
     """Permission denial and tool-call budget limit block execution before handler."""
     gate, _state, _sandbox, _store, _audit, counts = _make_gate_env(

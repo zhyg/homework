@@ -165,29 +165,61 @@ class ToolGate:
     # Approval lookup helpers (G3, G4, C4)
     # ------------------------------------------------------------------
 
+    def _canonicalize_arguments(
+        self,
+        policy: ToolPolicy,
+        arguments: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Return canonicalized arguments (normalizing validated workspace-relative paths)."""
+        canonical = dict(arguments)
+        for path_arg in policy.path_args:
+            if path_arg in canonical and canonical[path_arg] is not None:
+                resolved = self.sandbox.validate_path(canonical[path_arg], for_write=policy.is_mutating)
+                canonical[path_arg] = resolved.relative_to(self.sandbox.workspace_root).as_posix()
+        return canonical
+
     def _find_approvals(
         self,
         tool_call_id: str,
+        tool_name: str,
         fp: str,
-    ) -> tuple[ApprovalRecord | None, ApprovalRecord | None, ApprovalRecord | None, ApprovalRecord | None, ApprovalRecord | None]:
-        """Return (approved, pending, consumed, rejected, invalidated) matching this call."""
-        approved = pending = consumed = rejected = invalidated = None
+    ) -> tuple[
+        ApprovalRecord | None,
+        ApprovalRecord | None,
+        ApprovalRecord | None,
+        ApprovalRecord | None,
+        ApprovalRecord | None,
+        ApprovalRecord | None,
+    ]:
+        """Return (approved, pending, consumed, rejected, invalidated, mismatched) for this call.
+
+        An APPROVED grant is strictly bound to BOTH tool_call_id AND canonical (tool_name, arguments).
+        If tool_call_id matches an existing approval record whose tool_name or canonical action_fingerprint
+        differs, it is returned as `mismatched` so the tampered call is explicitly denied.
+        """
+        approved = pending = consumed = rejected = invalidated = mismatched = None
         for record in self.run_state.approvals.values():
             same_id = record.tool_call_id == tool_call_id
-            same_fp = record.action_fingerprint == fp
-            if not (same_id or same_fp):
+            same_action = record.tool_name == tool_name and record.action_fingerprint == fp
+
+            if same_id and not same_action:
+                mismatched = record
                 continue
-            if record.status == ApprovalStatus.APPROVED and (same_id or approved is None):
+
+            if not (same_id or same_action):
+                continue
+
+            if record.status == ApprovalStatus.APPROVED and same_id and same_action:
                 approved = record
-            elif record.status == ApprovalStatus.PENDING and (same_id or pending is None):
+            elif record.status == ApprovalStatus.PENDING and same_id and same_action:
                 pending = record
-            elif record.status == ApprovalStatus.CONSUMED and (same_id or consumed is None):
+            elif record.status == ApprovalStatus.CONSUMED and (same_id or same_action):
                 consumed = record
-            elif record.status == ApprovalStatus.REJECTED and same_id:
+            elif record.status == ApprovalStatus.REJECTED and same_id and same_action:
                 rejected = record
-            elif record.status == ApprovalStatus.INVALIDATED and (same_id or invalidated is None):
+            elif record.status == ApprovalStatus.INVALIDATED and same_action:
                 invalidated = record
-        return approved, pending, consumed, rejected, invalidated
+        return approved, pending, consumed, rejected, invalidated, mismatched
 
     def _deny(
         self,
@@ -374,7 +406,8 @@ class ToolGate:
                 details=exc.details,
             )
 
-        fp = action_fingerprint(tool_name, arguments)
+        canonical_arguments = self._canonicalize_arguments(policy, arguments)
+        fp = action_fingerprint(tool_name, canonical_arguments)
 
         # 6. Write-journal idempotency & UNKNOWN_RESULT guard (C2, C3, G4)
         existing_journal = self.run_state.write_journal.get(tool_call_id)
@@ -421,11 +454,54 @@ class ToolGate:
         # 7. Approval check for high-risk / mutating tools (G3, G4, C4)
         approval_to_consume: ApprovalRecord | None = None
         if policy.requires_approval:
-            approved, pending, consumed, rejected, invalidated = self._find_approvals(
-                tool_call_id, fp
+            approved, pending, consumed, rejected, invalidated, mismatched = self._find_approvals(
+                tool_call_id, tool_name, fp
             )
 
+            if mismatched is not None:
+                # G4: Same tool_call_id reused with tampered tool/arguments -> reject without executing or consuming!
+                return self._deny(
+                    tool_call_id=tool_call_id,
+                    tool_name=tool_name,
+                    step_number=effective_step,
+                    stage="GATE",
+                    rule="APPROVAL_ARGUMENT_MISMATCH",
+                    actor="gate",
+                    error_code="APPROVAL_ARGUMENT_MISMATCH",
+                    message=(
+                        f"Arguments for tool call '{tool_call_id}' do not match the canonical arguments "
+                        f"bound to approval '{mismatched.approval_id}'; tampered execution is rejected."
+                    ),
+                    arguments=arguments,
+                    details={
+                        "approval_id": mismatched.approval_id,
+                        "approval_status": mismatched.status.value,
+                        "expected_fingerprint": mismatched.action_fingerprint,
+                        "actual_fingerprint": fp,
+                    },
+                )
+
             if approved is not None:
+                # Defense-in-depth: double-check approval binding to exact tool_name & canonical fingerprint
+                if approved.tool_name != tool_name or approved.action_fingerprint != fp:
+                    return self._deny(
+                        tool_call_id=tool_call_id,
+                        tool_name=tool_name,
+                        step_number=effective_step,
+                        stage="GATE",
+                        rule="APPROVAL_ARGUMENT_MISMATCH",
+                        actor="gate",
+                        error_code="APPROVAL_ARGUMENT_MISMATCH",
+                        message=(
+                            f"Approval '{approved.approval_id}' does not match current call arguments."
+                        ),
+                        arguments=arguments,
+                        details={
+                            "approval_id": approved.approval_id,
+                            "expected_fingerprint": approved.action_fingerprint,
+                            "actual_fingerprint": fp,
+                        },
+                    )
                 # Verify workspace hasn't drifted since approval was issued (C4 defense-in-depth)
                 _, live_ws_hash, _ = self.sandbox.compute_workspace_snapshot()
                 if approved.workspace_hash and live_ws_hash != approved.workspace_hash:
@@ -521,7 +597,7 @@ class ToolGate:
                         run_id=self.run_state.run_id,
                         tool_call_id=tool_call_id,
                         tool_name=tool_name,
-                        arguments=dict(arguments),
+                        arguments=dict(canonical_arguments),
                         action_fingerprint=fp,
                         risk_level=policy.risk_level,
                         workspace_hash=live_ws_hash,
